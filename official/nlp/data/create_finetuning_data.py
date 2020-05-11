@@ -46,7 +46,7 @@ flags.DEFINE_string(
     "for the task.")
 
 flags.DEFINE_enum("classification_task_name", "MNLI",
-                  ["COLA", "MNLI", "MRPC", "QNLI", "QQP", "SST-2", "XNLI"],
+                  ["COLA", "MNLI", "MRPC", "QNLI", "QQP", "SST-2", "XNLI", "MEDNLI"],
                   "The name of the task to train BERT classifier.")
 
 # XNLI task specific flag.
@@ -165,6 +165,7 @@ def generate_classifier_dataset():
         "xnli":
             functools.partial(classifier_data_lib.XnliProcessor,
                               language=FLAGS.xnli_language),
+        "mednli": classifier_data_lib.MedNLIProcessor,
     }
     task_name = FLAGS.classification_task_name.lower()
     if task_name not in processors:
