@@ -21,6 +21,7 @@ from __future__ import print_function
 import collections
 import csv
 import importlib
+import json
 import os
 
 from absl import logging
@@ -458,6 +459,45 @@ class QnliProcessor(DataProcessor):
         label = tokenization.convert_to_unicode(line[-1])
       examples.append(
           InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+    return examples
+  
+class MedNLIProcessor(DataProcessor):
+  """Processor for the MedNLI dataset."""
+
+  def get_train_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the train set."""
+    file_path = os.path.join(data_dir, "mli_train_v1.jsonl")
+    return self._create_examples(file_path)
+
+  def get_dev_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the dev set."""
+    file_path = os.path.join(data_dir, "mli_dev_v1.jsonl")
+    return self._create_examples(file_path)
+
+  def get_test_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the test set."""
+    file_path = os.path.join(data_dir, "mli_test_v1.jsonl")
+    return self._create_examples(file_path)
+
+  def get_labels(self):
+    """See base class."""
+    return ["contradiction", "entailment", "neutral"]
+
+  @staticmethod
+  def get_processor_name():
+    """See base class."""
+    return "MedNLI"
+
+  def _create_examples(self, file_path):
+    examples = []
+    with open(file_path, "r") as f:
+      lines = f.readlines()
+      for line in lines:
+        example = json.loads(line)
+        examples.append(
+          InputExample(guid=example['pairID'], text_a=example['sentence1'],
+            text_b=example['sentence2'], label=example['gold_label']))
+
     return examples
 
 
