@@ -534,7 +534,7 @@ def run_customized_training_loop(
       logs = _run_evaluation(current_step,
                              _get_input_iterator(eval_input_fn, strategy))
 
-    callback_list.on_epoch_end(int(current_step / steps_per_epoch), logs)
+    # callback_list.on_epoch_end(int(current_step / steps_per_epoch), logs)
 
     training_summary = {
         'total_training_steps': total_training_steps,
