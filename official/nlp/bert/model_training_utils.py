@@ -40,12 +40,13 @@ def _should_export_summary(strategy):
   return (not strategy) or strategy.extended.should_save_summary
 
 
-def _save_checkpoint(strategy, checkpoint, model_dir, checkpoint_prefix):
+def _save_checkpoint(strategy, checkpoint, manager, model_dir, checkpoint_prefix):
   """Saves model to with provided checkpoint prefix."""
 
   if _should_export_checkpoint(strategy):
     checkpoint_path = os.path.join(model_dir, checkpoint_prefix)
-    saved_path = checkpoint.save(checkpoint_path)
+
+    saved_path = manager.save()
     logging.info('Saving model as TF checkpoint: %s', saved_path)
   else:
     # In multi worker training we need every worker to save checkpoint, because
@@ -438,6 +439,15 @@ def run_customized_training_loop(
     sub_model_checkpoint = tf.train.Checkpoint(
         model=sub_model,
         global_step=optimizer.iterations) if sub_model_export_name else None
+
+    ckpt_manager = tf.train.CheckpointManager(checkpoint,
+                                         model_dir,
+                                         max_to_keep=3,
+                                         checkpoint_name=os.path.basename(checkpoint_path))
+    sub_model_ckpt_managet = tf.train.CheckpointManager(checkpoint,
+                                         os.path.dirname(checkpoint_path),
+                                         max_to_keep=3,
+                                         checkpoint_name=os.path.basename(checkpoint_path))
 
     latest_checkpoint_file = tf.train.latest_checkpoint(model_dir)
     if latest_checkpoint_file:
