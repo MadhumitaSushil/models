@@ -501,6 +501,54 @@ class MedNLIProcessor(DataProcessor):
     return examples
 
 
+class WikiMedNLIProcessor(DataProcessor):
+  """Processor for the MedNLI dataset."""
+
+  def get_train_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the train set."""
+    file_path = os.path.join(data_dir, "mli_train_v1.jsonl")
+    return self._create_examples(file_path)
+
+  def get_dev_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the dev set."""
+    file_path = os.path.join(data_dir, "mednli_dev_wikimed.jsonl")
+    return self._create_examples(file_path)
+
+  def get_test_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the test set."""
+    file_path = os.path.join(data_dir, "mednli_test_wikimed.jsonl")
+    return self._create_examples(file_path)
+
+  def get_labels(self):
+    """See base class."""
+    return ["contradiction", "entailment", "neutral"]
+
+  @staticmethod
+  def get_processor_name():
+    """See base class."""
+    return "WikiMedNLI"
+
+  def _create_examples(self, file_path):
+    examples = []
+    with open(file_path, "r") as f:
+      lines = f.readlines()
+      for line in lines:
+        example = json.loads(line)
+        guid = example['pairID']
+        text_a = example['sentence1']
+        text_b = example['sentence2']
+
+        try:
+          text_a = text_a + ' ' + example['knowledge']
+        except KeyError:
+          pass
+
+        examples.append(
+          InputExample(guid=guid, text_a=text_a, text_b=text_b, label=example['gold_label']))
+
+    return examples
+
+
 class TfdsProcessor(DataProcessor):
   """Processor for generic text classification TFDS data set.
 
