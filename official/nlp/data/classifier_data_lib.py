@@ -506,7 +506,7 @@ class WikiMedNLIProcessor(DataProcessor):
 
   def get_train_examples(self, data_dir):
     """Gets a collection of `InputExample`s for the train set."""
-    file_path = os.path.join(data_dir, "mli_train_v1.jsonl")
+    file_path = os.path.join(data_dir, "mednli_train_wikimed.jsonl")
     return self._create_examples(file_path)
 
   def get_dev_examples(self, data_dir):
