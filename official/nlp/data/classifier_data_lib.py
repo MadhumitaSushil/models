@@ -553,21 +553,34 @@ class WikiMedNLIProcessor(DataProcessor):
 class HypothesisMnliProcessor(DataProcessor):
   """Processor for the MultiNLI data set (GLUE version), but when using only hypothesis (sentence2) as the input."""
 
-  def get_train_examples(self, data_dir):
+  def get_train_examples(self, data_dir, split_id=1):
     """See base class."""
-    return self._create_examples(
-        self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
-  def get_dev_examples(self, data_dir):
+    data = self._read_tsv(os.path.join(data_dir, "train.tsv"))
+
+    train_data = list()
+
+    with open(os.path.join(data_dir, "train_split_"+str(split_id)+".txt"), 'r') as f:
+      for line in f:
+        train_data.append(data[int(line)])
+
+    return self._create_examples(train_data, "train")
+
+  def get_dev_examples(self, data_dir, split_id=1):
     """See base class."""
-    return self._create_examples(
-        self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")),
-        "dev_matched")
+    data = self._read_tsv(os.path.join(data_dir, "train.tsv"))
+
+    val_data = list()
+
+    with open(os.path.join(data_dir, "test_split_"+str(split_id)+".txt"), 'r') as f:
+      for line in f:
+        val_data.append(data[int(line)])
+
+    return self._create_examples(val_data, "dev")
 
   def get_test_examples(self, data_dir):
     """See base class."""
-    return self._create_examples(
-        self._read_tsv(os.path.join(data_dir, "test_matched.tsv")), "test")
+    pass
 
   def get_labels(self):
     """See base class."""
@@ -581,6 +594,7 @@ class HypothesisMnliProcessor(DataProcessor):
   def _create_examples(self, lines, set_type):
     """Creates examples for the training and dev sets."""
     examples = []
+
     for (i, line) in enumerate(lines):
       if i == 0:
         continue
@@ -592,6 +606,60 @@ class HypothesisMnliProcessor(DataProcessor):
         label = self.process_text_fn(line[-1])
       examples.append(
           InputExample(guid=guid, text_a=text_a, label=label))
+    return examples
+
+
+class MnliHardTrainProcessor(DataProcessor):
+  """Processor for the MultiNLI data set (GLUE version)."""
+
+  def get_train_examples(self, data_dir):
+    """See base class."""
+
+    easy_pairids = set()
+    for line in open(os.path.join(data_dir, 'mnli_train_easy_biobert-0.2.txt')):
+      easy_pairids.add(line.strip())
+
+    print("Total easy ids: ", len(easy_pairids))
+
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, "train.tsv")), "train", easy_pairids)
+
+  def get_dev_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")),
+        "dev_matched", None)
+
+  def get_test_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, "test_matched.tsv")), "test", None)
+
+  def get_labels(self):
+    """See base class."""
+    return ["contradiction", "entailment", "neutral"]
+
+  @staticmethod
+  def get_processor_name():
+    """See base class."""
+    return "HardMNLI"
+
+  def _create_examples(self, lines, set_type, easy_pairids):
+    """Creates examples for the training and dev sets."""
+    examples = []
+    for (i, line) in enumerate(lines):
+      if i == 0:
+        continue
+      if easy_pairids and line[2].strip() not in easy_pairids:
+        guid = "%s-%s" % (set_type, self.process_text_fn(line[0]))
+        text_a = self.process_text_fn(line[8])
+        text_b = self.process_text_fn(line[9])
+        if set_type == "test":
+          label = "contradiction"
+        else:
+          label = self.process_text_fn(line[-1])
+        examples.append(
+            InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
     return examples
 
 
