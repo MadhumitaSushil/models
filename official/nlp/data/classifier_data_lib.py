@@ -650,7 +650,7 @@ class MnliHardTrainProcessor(DataProcessor):
     for (i, line) in enumerate(lines):
       if i == 0:
         continue
-      if easy_pairids and line[2].strip() not in easy_pairids:
+      if easy_pairids is None or line[2].strip() not in easy_pairids:
         guid = "%s-%s" % (set_type, self.process_text_fn(line[0]))
         text_a = self.process_text_fn(line[8])
         text_b = self.process_text_fn(line[9])
