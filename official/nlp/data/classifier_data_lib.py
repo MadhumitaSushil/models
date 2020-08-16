@@ -596,8 +596,6 @@ class HypothesisMnliProcessor(DataProcessor):
     examples = []
 
     for (i, line) in enumerate(lines):
-      if i == 0:
-        continue
       guid = "%s-%s" % (set_type, self.process_text_fn(line[0]))
       text_a = self.process_text_fn(line[9])
       if set_type == "test":
@@ -606,6 +604,7 @@ class HypothesisMnliProcessor(DataProcessor):
         label = self.process_text_fn(line[-1])
       examples.append(
           InputExample(guid=guid, text_a=text_a, label=label))
+    print("Number of examples of set ", set_type, ": ", len(examples))
     return examples
 
 
