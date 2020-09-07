@@ -47,7 +47,7 @@ flags.DEFINE_string(
 
 flags.DEFINE_enum("classification_task_name", "MNLI",
                   ["COLA", "MNLI", "MRPC", "QNLI", "QQP", "SST-2", "XNLI",
-                   "MEDNLI", "WikiMEDNLI",
+                   "MEDNLI", "WikiMEDNLI", "HypoMEDNLI", "HardMEDNLI",
                    "HypoMNLI", "HardMNLI"],
                   "The name of the task to train BERT classifier.")
 
@@ -169,6 +169,10 @@ def generate_classifier_dataset():
                               language=FLAGS.xnli_language),
         "mednli":
             classifier_data_lib.MedNLIProcessor,
+        "hypomednli":
+            classifier_data_lib.HypoMedNLIProcessor,
+        "hardmednli":
+            classifier_data_lib.HardMedNLIProcessor,
         "wikimednli":
             classifier_data_lib.WikiMedNLIProcessor,
         "hypomnli":

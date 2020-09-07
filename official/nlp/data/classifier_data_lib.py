@@ -502,8 +502,101 @@ class MedNLIProcessor(DataProcessor):
     return examples
 
 
+class HypoMedNLIProcessor(DataProcessor):
+  """Processor for the MedNLI dataset when using only the hypothesis (sentence2) as the input."""
+
+  def get_train_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the train set."""
+    file_path = os.path.join(data_dir, "mli_train_v1.jsonl")
+    return self._create_examples(file_path)
+
+  def get_dev_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the dev set."""
+    file_path = os.path.join(data_dir, "mli_dev_v1.jsonl")
+    return self._create_examples(file_path)
+
+  def get_test_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the test set."""
+    file_path = os.path.join(data_dir, "mli_test_v1.jsonl")
+    return self._create_examples(file_path)
+
+  def get_labels(self):
+    """See base class."""
+    return ["contradiction", "entailment", "neutral"]
+
+  @staticmethod
+  def get_processor_name():
+    """See base class."""
+    return "HypoMedNLI"
+
+  def _create_examples(self, file_path):
+    examples = []
+    with open(file_path, "r") as f:
+      lines = f.readlines()
+      for line in lines:
+        example = json.loads(line)
+        examples.append(
+          InputExample(guid=example['pairID'], text_a=example['sentence2'],
+            label=example['gold_label']))
+
+    return examples
+
+
+class HardMedNLIProcessor(DataProcessor):
+  """Processor for the hard MedNLI dataset"""
+
+  def get_train_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the train set."""
+    file_path = os.path.join(data_dir, "mli_train_v1.jsonl")
+    return self._create_examples(file_path)
+
+  def get_dev_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the dev set."""
+    file_path = os.path.join(data_dir, "mli_dev_v1.jsonl")
+
+    easy_idx = set()
+    for line in open(os.path.join(data_dir, 'mednli_dev_easy.txt')):
+      easy_idx.add(line.strip())
+
+    return self._create_examples(file_path, easy_idx)
+
+  def get_test_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for the test set."""
+    file_path = os.path.join(data_dir, "mli_test_v1.jsonl")
+
+    easy_idx = set()
+    for line in open(os.path.join(data_dir, 'mednli_test_easy.txt')):
+      easy_idx.add(line.strip())
+
+    return self._create_examples(file_path, easy_idx)
+
+  def get_labels(self):
+    """See base class."""
+    return ["contradiction", "entailment", "neutral"]
+
+  @staticmethod
+  def get_processor_name():
+    """See base class."""
+    return "HardMedNLI"
+
+  def _create_examples(self, file_path, easy_idx=None):
+    examples = []
+    with open(file_path, "r") as f:
+      lines = f.readlines()
+      for line in lines:
+        example = json.loads(line)
+        if easy_idx is None or example['pairID'] not in easy_idx:
+          examples.append(
+            InputExample(guid=example['pairID'],
+                         text_a=example['sentence1'],
+                         text_b=example['sentence2'],
+                         label=example['gold_label']))
+
+    return examples
+
+
 class WikiMedNLIProcessor(DataProcessor):
-  """Processor for the MedNLI dataset."""
+  """Processor for the knowledge-augmented MedNLI dataset."""
 
   def get_train_examples(self, data_dir):
     """Gets a collection of `InputExample`s for the train set."""
@@ -551,7 +644,8 @@ class WikiMedNLIProcessor(DataProcessor):
 
 
 class HypothesisMnliProcessor(DataProcessor):
-  """Processor for the MultiNLI data set (GLUE version), but when using only hypothesis (sentence2) as the input."""
+  """Processor for the MultiNLI data set (GLUE version),
+  but when using only hypothesis (sentence2) as the input."""
 
   def get_train_examples(self, data_dir, split_id=1):
     """See base class."""
@@ -609,7 +703,7 @@ class HypothesisMnliProcessor(DataProcessor):
 
 
 class MnliHardTrainProcessor(DataProcessor):
-  """Processor for the MultiNLI data set (GLUE version)."""
+  """Processor for the hard subset of MultiNLI data set (GLUE version)."""
 
   def get_train_examples(self, data_dir):
     """See base class."""
